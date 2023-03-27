@@ -132,7 +132,8 @@ declare namespace Objection {
     | boolean[]
     | Date[]
     | null
-    | Buffer;
+    | Buffer
+    | Buffer[];
 
   type Expression<T> = T | Raw | ReferenceBuilder | ValueBuilder | AnyQueryBuilder;
 
@@ -1453,6 +1454,9 @@ declare namespace Objection {
     static HasOneThroughRelation: RelationType;
 
     static defaultGraphOptions?: GraphOptions;
+
+    static columnNameToPropertyName(propertyName: string): string;
+    static propertyNameToColumnName(propertyName: string): string;
 
     static query<M extends Model>(
       this: Constructor<M>,
