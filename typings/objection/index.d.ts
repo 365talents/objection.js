@@ -1454,6 +1454,9 @@ declare namespace Objection {
 
     static defaultGraphOptions?: GraphOptions;
 
+    static columnNameToPropertyName(propertyName: string): string;
+    static propertyNameToColumnName(propertyName: string): string;
+
     static query<M extends Model>(
       this: Constructor<M>,
       trxOrKnex?: TransactionOrKnex
