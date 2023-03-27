@@ -1,5 +1,14 @@
 # Changelog
+## 3.0.1-fork1
 
+### What's new
+
+Add ability to have a [modifier / filter](/doc/api/types#type-relationthrough) on the join table of a relation having a "through"
+Fix some types: `PrimitiveValue`, `columnNameToPropertyName`, `propertyNameToColumnName`
+
+## 3.0.1
+
+? missing from original repo
 ## 3.0.0
 
 ### What's new
