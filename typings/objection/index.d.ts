@@ -213,6 +213,13 @@ declare namespace Objection {
   };
 
   /**
+   * Restrict the keys to the ones present in Restriction
+   */
+  type RestrictType<TypeToRestrict, Restriction> = { [K in keyof TypeToRestrict]: K extends keyof Restriction ? TypeToRestrict[K] : never }
+
+  type SetRequired<T, Required> = T & {[k in keyof T as k extends keyof Required ? k : never]-?: T[k]};
+
+  /**
    * Additional optional parameters that may be used in graphs.
    */
   type GraphParameters = {
@@ -1088,7 +1095,7 @@ declare namespace Objection {
     for(ids: ForIdValue | ForIdValue[]): this;
 
     withGraphFetched(expr: StringRelationExpression<M>, options?: GraphOptions): this;
-    withGraphFetched<Expr extends ObjectRelationExpression<M>>(expr: { [K in keyof Expr]: K extends keyof ObjectRelationExpression<M> ? Expr[K] : never }, options?: GraphOptions): QueryBuilder<M & {[k in keyof M as k extends keyof Expr ? k : never]-?: M[k]}>;
+    withGraphFetched<Expr extends ObjectRelationExpression<M>>(expr: RestrictType<Expr, ObjectRelationExpression<M>>, options?: GraphOptions): QueryBuilder<SetRequired<M, Expr>>;
     withGraphJoined(expr: RelationExpression<M>, options?: GraphOptions): this;
 
     truncate(): Promise<void>;
