@@ -15,7 +15,7 @@
 import Ajv, { Options as AjvOptions } from 'ajv';
 import * as dbErrors from 'db-errors';
 import { Knex } from 'knex';
-import { SnakeCase, SnakeCasedProperties } from 'type-fest';
+import { SnakeCase } from 'type-fest';
 
 // Export the entire Objection namespace.
 export = Objection;
@@ -171,6 +171,8 @@ declare namespace Objection {
   }
 
   type RelationExpression<M extends Model> = string | object;
+  type StringRelationExpression<M extends Model> = string;
+  type ObjectRelationExpression<M extends Model> = {readonly [key in keyof ModelObject<M>]?: object | boolean};
 
   /**
    * If T is an array, returns the item type, otherwise returns T.
@@ -1085,7 +1087,8 @@ declare namespace Objection {
     unrelate(): NumberQueryBuilder<this>;
     for(ids: ForIdValue | ForIdValue[]): this;
 
-    withGraphFetched(expr: RelationExpression<M>, options?: GraphOptions): this;
+    withGraphFetched(expr: StringRelationExpression<M>, options?: GraphOptions): this;
+    withGraphFetched<Expr extends ObjectRelationExpression<M>>(expr: { [K in keyof Expr]: K extends keyof ObjectRelationExpression<M> ? Expr[K] : never }, options?: GraphOptions): QueryBuilder<M & {[k in keyof M as k extends keyof Expr ? k : never]-?: M[k]}>;
     withGraphJoined(expr: RelationExpression<M>, options?: GraphOptions): this;
 
     truncate(): Promise<void>;

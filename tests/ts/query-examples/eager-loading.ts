@@ -63,4 +63,20 @@ import { Person } from '../fixtures/person';
   await Person.query().withGraphFetched('[pets, children.pets]');
 
   await Person.query().withGraphJoined('[pets, children.pets]');
+
+  const withRelations = await Person.query().withGraphFetched({
+    pets: true,
+    children: {
+      pets: true,
+      children: true,
+    },
+  });
+
+  // no error as we ask for children in the withGraphFetched
+  withRelations[0].children[0];
+
+  // should have an error as we didn't ask for comments in the withGraphFetched
+  // @ts-expect-error
+  withRelations[0].comments[0]
+
 })();
