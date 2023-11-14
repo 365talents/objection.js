@@ -13,6 +13,55 @@ import { Person } from '../fixtures/person';
     },
   });
 
+  // @ts-expect-error property foo does not exist
+  await Person.query().withGraphFetched({
+    foo: true,
+    children: {
+      pets: true,
+      children: true,
+    },
+  });
+
+  const personWithPets = await Person.query().withGraphFetched({
+    pet: true,
+    children: {
+      pets: true,
+      children: true,
+    },
+  }).first();
+
+  if(personWithPets) {
+    personWithPets.pet;
+    personWithPets.pet.name;
+    // @ts-expect-error mom was not fetched
+    personWithPets.mom.lastName;
+    personWithPets.children;
+    personWithPets.children.at(0);
+    personWithPets.children.at(0)?.children;
+    personWithPets.children.at(0)?.children.at(0);
+  }
+
+  const personWithMom = await Person.query().withGraphFetched({
+    mom: {
+      mom: true,
+      children: true,
+    },
+  }).first();
+  if(personWithMom){
+    personWithMom.mom.lastName;
+    personWithMom.mom.mom.lastName;
+    // @ts-expect-error pet was not fetched
+    personWithMom.mom.mom.pet.name;
+    // @ts-expect-error mom was not fetched
+    personWithMom.mom.mom.mom.lastName;
+  }
+
+  const personAlone = await Person.query().first();
+  if(personAlone){
+    // @ts-expect-error we didnt fetch pet
+    personAlone.pet.name;
+  }
+
   await Person.query().withGraphFetched('[pets, children.^]');
 
   await Person.query().withGraphFetched('[pets, children.^3]');

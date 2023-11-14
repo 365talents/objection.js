@@ -1,3 +1,4 @@
+import { Primitive, Simplify } from 'type-fest';
 /// <reference types="node" />
 
 // Type definitions for Objection.js
@@ -217,7 +218,19 @@ declare namespace Objection {
    */
   type RestrictType<TypeToRestrict, Restriction> = { [K in keyof TypeToRestrict]: K extends keyof Restriction ? TypeToRestrict[K] : never }
 
-  type SetRequired<T, Required> = T & {[k in keyof T as k extends keyof Required ? k : never]-?: T[k]};
+  /**
+   * Recursive SetRequired
+   */
+  type SetRequired<T, Required> = Omit<T, keyof Required> & 
+    {[k in keyof T as k extends keyof Required ? k : never]-?: 
+      k extends keyof Required ?
+        Required[k] extends object ?
+          NonNullable<T[k]> extends Array<infer ItemType> ?
+            Array<SetRequired<ItemType, Required[k]>>
+            : SetRequired<NonNullable<T[k]>, Required[k]>
+          : T[k]
+        : T[k]
+    };
 
   /**
    * Additional optional parameters that may be used in graphs.
@@ -1095,7 +1108,7 @@ declare namespace Objection {
     for(ids: ForIdValue | ForIdValue[]): this;
 
     withGraphFetched(expr: StringRelationExpression<M>, options?: GraphOptions): this;
-    withGraphFetched<Expr extends ObjectRelationExpression<M>>(expr: RestrictType<Expr, ObjectRelationExpression<M>>, options?: GraphOptions): QueryBuilder<SetRequired<M, Expr>>;
+    withGraphFetched<Expr extends ObjectRelationExpression<M>>(expr: RestrictType<Expr, ObjectRelationExpression<M>>, options?: GraphOptions): QueryBuilder<Model & SetRequired<M, Expr>>; // Model is here to guarantee that we have '$modelClass', '$relatedQuery', '$query' etc. as they will never be in 'required'
     withGraphJoined(expr: RelationExpression<M>, options?: GraphOptions): this;
 
     truncate(): Promise<void>;
