@@ -62,6 +62,20 @@ import { Person } from '../fixtures/person';
     personAlone.pet.name;
   }
 
+  const personWitModifier = await Person.query().withGraphFetched({
+    mom: {
+      $modify: ['selectAll'],
+      mom: {
+        pet: true,
+      }
+    },
+  }).first();
+  if(personWitModifier){
+    personWitModifier.mom.mom.pet.name;
+    // @ts-expect-error
+    personWitModifier.mom['$modify'];
+  }
+
   await Person.query().withGraphFetched('[pets, children.^]');
 
   await Person.query().withGraphFetched('[pets, children.^3]');

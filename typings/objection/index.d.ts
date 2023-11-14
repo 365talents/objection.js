@@ -226,8 +226,8 @@ declare namespace Objection {
       k extends keyof Required ?
         Required[k] extends object ?
           NonNullable<T[k]> extends Array<infer ItemType> ?
-            Array<SetRequired<ItemType, Required[k]>>
-            : SetRequired<NonNullable<T[k]>, Required[k]>
+            Array<Simplify<SetRequired<ItemType, Required[k]>>>
+            : Simplify<SetRequired<NonNullable<T[k]>, Required[k]>>
           : T[k]
         : T[k]
     };
@@ -1108,7 +1108,7 @@ declare namespace Objection {
     for(ids: ForIdValue | ForIdValue[]): this;
 
     withGraphFetched(expr: StringRelationExpression<M>, options?: GraphOptions): this;
-    withGraphFetched<Expr extends ObjectRelationExpression<M>>(expr: RestrictType<Expr, ObjectRelationExpression<M>>, options?: GraphOptions): QueryBuilder<Model & SetRequired<M, Expr>>; // Model is here to guarantee that we have '$modelClass', '$relatedQuery', '$query' etc. as they will never be in 'required'
+    withGraphFetched<Expr extends ObjectRelationExpression<M>>(expr: RestrictType<Expr, ObjectRelationExpression<M>>, options?: GraphOptions): QueryBuilder<Model & Simplify<SetRequired<M, Expr>>>; // Model is here to guarantee that we have '$modelClass', '$relatedQuery', '$query' etc. as they will never be in 'required'
     withGraphJoined(expr: RelationExpression<M>, options?: GraphOptions): this;
 
     truncate(): Promise<void>;
