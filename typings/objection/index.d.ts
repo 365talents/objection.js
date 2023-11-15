@@ -1,4 +1,4 @@
-import { Primitive, Simplify } from 'type-fest';
+import { IsEqual, Simplify } from 'type-fest';
 /// <reference types="node" />
 
 // Type definitions for Objection.js
@@ -195,10 +195,24 @@ declare namespace Objection {
    */
   type Defined<T> = Exclude<T, undefined>;
 
+
+  /**
+   * Filter out keys from an object.
+   */
+  type Filter<KeyType, ExcludeType> = IsEqual<KeyType, ExcludeType> extends true ? never : (KeyType extends ExcludeType ? never : KeyType);
+  
+  /**
+   * Does an Except recursively, removing the keys of the ExclType on each level of ObjectType if the property of ObjectType extends the ExclType.
+   */
+  type ExceptTypeDeep<ObjectType extends ExclType, ExclType> = {
+    [KeyType in keyof ObjectType as Filter<KeyType, keyof ExclType>]: ObjectType[KeyType] extends ExclType ? ExceptTypeDeep<ObjectType[KeyType], ExclType>: ObjectType[KeyType];
+  };
+  
+  
   /**
    * A Pojo version of model.
    */
-  type ModelObject<T extends Model> = Pick<T, DataPropertyNames<T>>;
+  type ModelObject<T extends Model> = ExceptTypeDeep<T, Model>;
 
   /**
    * Any object that has some of the properties of model class T match this type.
@@ -1108,7 +1122,10 @@ declare namespace Objection {
     for(ids: ForIdValue | ForIdValue[]): this;
 
     withGraphFetched(expr: StringRelationExpression<M>, options?: GraphOptions): this;
-    withGraphFetched<Expr extends ObjectRelationExpression<M>>(expr: RestrictType<Expr, ObjectRelationExpression<M>>, options?: GraphOptions): QueryBuilder<Model & Simplify<SetRequired<M, Expr>>>; // Model is here to guarantee that we have '$modelClass', '$relatedQuery', '$query' etc. as they will never be in 'required'
+    withGraphFetched<Expr extends ObjectRelationExpression<M>>(
+      expr: RestrictType<Expr, ObjectRelationExpression<M>>, 
+      options?: GraphOptions
+    ): QueryBuilder<Model & SetRequired<M, Expr>>; // Model is here to guarantee that we have '$modelClass', '$relatedQuery', '$query' etc. as they will never be in 'required'
     withGraphJoined(expr: RelationExpression<M>, options?: GraphOptions): this;
 
     truncate(): Promise<void>;
