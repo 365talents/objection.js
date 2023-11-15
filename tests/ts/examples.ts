@@ -712,7 +712,7 @@ const rowsEager2: PromiseLike<Person[]> = Person.query().withGraphFetched({
 });
 
 const rowsEager3: PromiseLike<Person[]> = Person.query().withGraphFetched({
-  foo: {
+  mom: {
     bar: true,
   },
 });
