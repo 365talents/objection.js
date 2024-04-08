@@ -5,6 +5,9 @@ const takesPersonPojo = (person: ModelObject<Person>) => true;
 
 const person = Person.fromJson({ firstName: 'Jennifer' });
 const personPojo = person.toJSON();
+// @ts-expect-error toJSON should remove the base Model methods recursively even on arrays 
+personPojo.children![0].$query
+
 (async () => {
   const p = await Person.query().withGraphFetched({
     mom: {

@@ -205,7 +205,11 @@ declare namespace Objection {
    * Does an Except recursively, removing the keys of the ExclType on each level of ObjectType if the property of ObjectType extends the ExclType.
    */
   type ExceptTypeDeep<ObjectType extends ExclType, ExclType> = {
-    [KeyType in keyof ObjectType as Filter<KeyType, keyof ExclType>]: ObjectType[KeyType] extends ExclType ? ExceptTypeDeep<ObjectType[KeyType], ExclType>: ObjectType[KeyType];
+    [KeyType in keyof ObjectType as Filter<KeyType, keyof ExclType>]:
+      ObjectType[KeyType] extends ExclType ? 
+        ExceptTypeDeep<ObjectType[KeyType], ExclType>
+        : Defined<ObjectType[KeyType]> extends Array<infer ArrayItem> ? 
+          ArrayItem extends ExclType ? Array<ExceptTypeDeep<ArrayItem, ExclType>> :  ObjectType[KeyType] : ObjectType[KeyType];
   };
   
   
