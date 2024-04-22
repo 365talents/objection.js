@@ -16,6 +16,7 @@ personPojo.children![0].$query
     pet: true
   }).first();
   if(p) {
+    p.mom.mom.mom;
     const pj = p.toJSON();
     // test that toJSON keeps the required properties
     pj.pet;

@@ -1,11 +1,19 @@
-import { Model, QueryBuilder, Page, TransactionOrKnex } from '../../';
+import { Model, QueryBuilder, Page, TransactionOrKnex, ObjectRelationExpression, GraphOptions, OnlyKeysFromModel, RestrictType, SetRequired, StringRelationExpression } from '../../';
 
+interface GraphFetchedMethod<M extends Model> {
+  <Expr extends ObjectRelationExpression<M>>(
+    expr: RestrictType<Expr, ObjectRelationExpression<M>>,
+    options?: GraphOptions
+  ): CustomQueryBuilder<OnlyKeysFromModel<M> & SetRequired<M, Expr>> ;
+  (expr: StringRelationExpression<M>, options?: GraphOptions): CustomQueryBuilder<M>;
+}
 class CustomQueryBuilder<M extends Model, R = M[]> extends QueryBuilder<M, R> {
   ArrayQueryBuilderType!: CustomQueryBuilder<M, M[]>;
   SingleQueryBuilderType!: CustomQueryBuilder<M, M>;
   MaybeSingleQueryBuilderType!: CustomQueryBuilder<M, M | undefined>;
   NumberQueryBuilderType!: CustomQueryBuilder<M, number>;
   PageQueryBuilderType!: CustomQueryBuilder<M, Page<M>>;
+  GraphFetchedHackType!: GraphFetchedMethod<M>;
 
   someCustomMethod(): this {
     return this;

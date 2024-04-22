@@ -174,6 +174,16 @@ declare namespace Objection {
   type RelationExpression<M extends Model> = string | object;
   type StringRelationExpression<M extends Model> = string;
   type ObjectRelationExpression<M extends Model> = {readonly [key in keyof ModelObject<M>]?: object | boolean};
+  type ExcludeUndefinedKeys<T> = T extends object
+  ? {
+      [K in keyof T as undefined extends T[K] ? never : K]: ExcludeUndefinedKeys<T[K]>;
+    }
+  : T;
+
+  // keeps keys starting with the $ sign and toJSON and QueryBuilderType
+  type OnlyKeysFromModel<M extends Model> = {
+    [K in keyof M as K extends `$${string}` ? K : never]: M[K];
+  } & {toJSON: M['toJSON'], QueryBuilderType: M['QueryBuilderType']};
 
   /**
    * If T is an array, returns the item type, otherwise returns T.
@@ -240,7 +250,7 @@ declare namespace Objection {
    * Recursive SetRequired
    */
   type SetRequired<T, Required> = Omit<T, keyof Required> & 
-    {[k in keyof T as k extends keyof Required ? k : never]-?: 
+    {[k in keyof T as k extends keyof Required ? k : never]-?:
       k extends keyof Required ?
         Required[k] extends object ?
           NonNullable<T[k]> extends Array<infer ItemType> ?
@@ -375,6 +385,11 @@ declare namespace Objection {
    * Gets the page query builder type for a query builder.
    */
   type PageQueryBuilder<T extends { PageQueryBuilderType: any }> = T['PageQueryBuilderType'];
+
+  /**
+   * Gets the page query builder type for a query builder.
+   */
+  type GraphFetchedHack<T extends { GraphFetchedHackType: any }> = T['GraphFetchedHackType'];
 
   interface ForClassMethod {
     <M extends Model>(modelClass: ModelConstructor<M>): QueryBuilderType<M>;
@@ -1125,11 +1140,14 @@ declare namespace Objection {
     unrelate(): NumberQueryBuilder<this>;
     for(ids: ForIdValue | ForIdValue[]): this;
 
-    withGraphFetched(expr: StringRelationExpression<M>, options?: GraphOptions): this;
-    withGraphFetched<Expr extends ObjectRelationExpression<M>>(
-      expr: RestrictType<Expr, ObjectRelationExpression<M>>, 
-      options?: GraphOptions
-    ): QueryBuilder<Model & SetRequired<M, Expr>>; // Model is here to guarantee that we have '$modelClass', '$relatedQuery', '$query' etc. as they will never be in 'required'
+    // withGraphFetched(expr: StringRelationExpression<M>, options?: GraphOptions): this;
+    // withGraphFetched<Expr extends ObjectRelationExpression<M>>(
+    //   expr: RestrictType<Expr, ObjectRelationExpression<M>>, 
+    //   options?: GraphOptions
+    // ): QueryBuilder<OnlyKeysFromModel<M> & SetRequired<M, Expr>>; // Model is here to guarantee that we have '$modelClass', '$relatedQuery', '$query' etc. as they will never be in 'required'
+    withGraphFetched: GraphFetchedHack<this>;
+    // withGraphFetched: GraphFetchedMethod<M>;
+    // withGraphFetched(expr: StringRelationExpression<M>, options?: GraphOptions): this;
     withGraphJoined(expr: RelationExpression<M>, options?: GraphOptions): this;
 
     truncate(): Promise<void>;
@@ -1224,6 +1242,7 @@ declare namespace Objection {
     MaybeSingleQueryBuilderType: QueryBuilder<M, M | undefined>;
     NumberQueryBuilderType: QueryBuilder<M, number>;
     PageQueryBuilderType: QueryBuilder<M, Page<M>>;
+    GraphFetchedHackType: GraphFetchedMethod<M>;
 
     then<R1 = R, R2 = never>(
       onfulfilled?: ((value: R) => R1 | PromiseLike<R1>) | undefined | null,
@@ -1233,6 +1252,14 @@ declare namespace Objection {
     catch<FR = never>(
       onrejected?: ((reason: any) => FR | PromiseLike<FR>) | undefined | null,
     ): Promise<R | FR>;
+  }
+
+  interface GraphFetchedMethod<M extends Model> {
+    <Expr extends ObjectRelationExpression<M>>(
+      expr: RestrictType<Expr, ObjectRelationExpression<M>>,
+      options?: GraphOptions
+    ): QueryBuilder<OnlyKeysFromModel<M> & SetRequired<M, Expr>> ;
+    (expr: StringRelationExpression<M>, options?: GraphOptions): QueryBuilder<M>;
   }
 
   type X<T> = Promise<T>;
