@@ -1,10 +1,15 @@
 import { Model, QueryBuilder, Page, TransactionOrKnex, ObjectRelationExpression, GraphOptions, OnlyKeysFromModel, RestrictType, SetRequired, StringRelationExpression } from '../../';
 
+
 interface GraphFetchedMethod<M extends Model> {
   <Expr extends ObjectRelationExpression<M>>(
     expr: RestrictType<Expr, ObjectRelationExpression<M>>,
-    options?: GraphOptions
-  ): CustomQueryBuilder<OnlyKeysFromModel<M> & SetRequired<M, Expr>> ;
+    options?: GraphOptions,
+  ): CustomQueryBuilder<
+    // Model is here to satisfy the Model requirement in the CustomQueryBuilder type
+    // sometimes creates errors because of recursivity
+    Model & SetRequired<M, Expr>
+  >;
   (expr: StringRelationExpression<M>, options?: GraphOptions): CustomQueryBuilder<M>;
 }
 class CustomQueryBuilder<M extends Model, R = M[]> extends QueryBuilder<M, R> {
