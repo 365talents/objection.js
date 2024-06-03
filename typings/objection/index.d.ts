@@ -389,7 +389,7 @@ declare namespace Objection {
   /**
    * Gets the page query builder type for a query builder.
    */
-  type GraphFetchedHack<T extends { GraphFetchedHackType: any }> = T['GraphFetchedHackType'];
+  type GraphFetchedHack<T extends { GraphFetchedQueryBuilderType: any }> = T['GraphFetchedQueryBuilderType'];
 
   interface ForClassMethod {
     <M extends Model>(modelClass: ModelConstructor<M>): QueryBuilderType<M>;
@@ -1246,7 +1246,7 @@ declare namespace Objection {
     MaybeSingleQueryBuilderType: QueryBuilder<M, M | undefined>;
     NumberQueryBuilderType: QueryBuilder<M, number>;
     PageQueryBuilderType: QueryBuilder<M, Page<M>>;
-    GraphFetchedHackType: GraphFetchedMethod<M>;
+    GraphFetchedQueryBuilderType: GraphFetchedMethod<M>;
 
     then<R1 = R, R2 = never>(
       onfulfilled?: ((value: R) => R1 | PromiseLike<R1>) | undefined | null,

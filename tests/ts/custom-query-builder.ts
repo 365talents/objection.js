@@ -13,7 +13,7 @@ class CustomQueryBuilder<M extends Model, R = M[]> extends QueryBuilder<M, R> {
   MaybeSingleQueryBuilderType!: CustomQueryBuilder<M, M | undefined>;
   NumberQueryBuilderType!: CustomQueryBuilder<M, number>;
   PageQueryBuilderType!: CustomQueryBuilder<M, Page<M>>;
-  GraphFetchedHackType!: GraphFetchedMethod<M>;
+  GraphFetchedQueryBuilderType!: GraphFetchedMethod<M>;
 
   someCustomMethod(): this {
     return this;
