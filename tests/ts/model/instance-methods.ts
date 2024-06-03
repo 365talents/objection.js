@@ -14,12 +14,11 @@ personPojo.children![0].$query
       mom: true
     },
     pet: true
-  });//.first();
+  });
 
   const p = await pq;
   if(p) {
     const pj = p[0].toJSON();
-    //const pj = p[0].blurb();
     // test that toJSON keeps the required properties
     pj.pet.id;
     pj.mom;
@@ -30,6 +29,26 @@ personPojo.children![0].$query
     pj.$fetchGraph;
     // @ts-expect-error test that toJSON works recursively
     pj.mom.$fetchGraph;
+  }
+
+});
+
+(async () => {
+  const p = await Person.query().withGraphFetched({
+    mom: {
+      mom: true
+    },
+    pet: true
+  }).first();
+
+  if(p) {
+    //const pj = p[0].blurb();
+    // test that toJSON keeps the required properties
+    p.pet.id;
+    p.mom;
+    // @ts-expect-error test that toJSON works
+    p.movies.at(0);
+    p.mom.mom.children?.at(0)?.lastName;
   }
 
 });
