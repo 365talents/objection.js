@@ -9,17 +9,22 @@ const personPojo = person.toJSON();
 personPojo.children![0].$query
 
 (async () => {
-  const p = await Person.query().withGraphFetched({
+  const pq = Person.query().withGraphFetched({
     mom: {
       mom: true
     },
     pet: true
-  }).first();
+  });//.first();
+
+  const p = await pq;
   if(p) {
-    p.mom.mom.mom;
-    const pj = p.toJSON();
+    const pj = p[0].toJSON();
+    //const pj = p[0].blurb();
     // test that toJSON keeps the required properties
-    pj.pet;
+    pj.pet.id;
+    pj.mom;
+    // @ts-expect-error test that toJSON works
+    pj.movies.at(0);
     pj.mom.mom.children?.at(0)?.lastName;
     // @ts-expect-error test that toJSON works
     pj.$fetchGraph;

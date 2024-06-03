@@ -1144,7 +1144,11 @@ declare namespace Objection {
     // withGraphFetched<Expr extends ObjectRelationExpression<M>>(
     //   expr: RestrictType<Expr, ObjectRelationExpression<M>>, 
     //   options?: GraphOptions
-    // ): QueryBuilder<OnlyKeysFromModel<M> & SetRequired<M, Expr>>; // Model is here to guarantee that we have '$modelClass', '$relatedQuery', '$query' etc. as they will never be in 'required'
+    // ): QueryBuilder<Model & SetRequired<M, Expr>>;
+    //  withGraphFetched<Expr extends ObjectRelationExpression<M>>(
+    //    expr: RestrictType<Expr, ObjectRelationExpression<M>>, 
+    //    options?: GraphOptions
+    //  ): QueryBuilder<M & SetRequired<M, Expr>>; // Model is here to guarantee that we have '$modelClass', '$relatedQuery', '$query' etc. as they will never be in 'required'
     withGraphFetched: GraphFetchedHack<this>;
     // withGraphFetched: GraphFetchedMethod<M>;
     // withGraphFetched(expr: StringRelationExpression<M>, options?: GraphOptions): this;
@@ -1258,7 +1262,11 @@ declare namespace Objection {
     <Expr extends ObjectRelationExpression<M>>(
       expr: RestrictType<Expr, ObjectRelationExpression<M>>,
       options?: GraphOptions
-    ): QueryBuilder<OnlyKeysFromModel<M> & SetRequired<M, Expr>> ;
+    ): QueryBuilder<
+      // Model is here to satisfy the Model requirement in the QueryBuilder type
+      // sometimes creates errors because of recursivity
+     Model
+      & SetRequired<M, Expr>> ;
     (expr: StringRelationExpression<M>, options?: GraphOptions): QueryBuilder<M>;
   }
 
