@@ -12,6 +12,18 @@ interface GraphFetchedMethod<M extends Model> {
   >;
   (expr: StringRelationExpression<M>, options?: GraphOptions): CustomQueryBuilder<M>;
 }
+
+// class customCustomQueryBuilder<M extends Model, R = M[]> extends CustomQueryBuilder<M, R> {
+//   <Expr extends ObjectRelationExpression<M>>(
+//     expr: RestrictType<Expr, ObjectRelationExpression<M>>,
+//     options?: GraphOptions,
+//   ): CustomQueryBuilder<
+//     // Model is here to satisfy the Model requirement in the CustomQueryBuilder type
+//     // sometimes creates errors because of recursivity
+//     Model & SetRequired<M, Expr>
+//   >;
+//   (expr: StringRelationExpression<M>, options?: GraphOptions): CustomQueryBuilder<M>;
+// }
 class CustomQueryBuilder<M extends Model, R = M[]> extends QueryBuilder<M, R> {
   ArrayQueryBuilderType!: CustomQueryBuilder<M, M[]>;
   SingleQueryBuilderType!: CustomQueryBuilder<M, M>;
@@ -70,3 +82,12 @@ const numUpdated: CustomQueryBuilder<Person, number> = Person.query()
 const allPets: PromiseLike<Animal[]> = Person.relatedQuery('pets')
   .for(Person.query().select('id'))
   .someCustomMethod();
+
+
+(async () => {
+  const testToJson = await Person.query().withGraphFetched({ pets: true });
+  testToJson[0].toJSON();
+  const testToJsonFirst = await Person.query().withGraphFetched({ pets: true }).first();
+  // const testToJsonFirst = await Person.query().withGraphFetched('pets').first();
+  testToJsonFirst?.toJSON();
+})

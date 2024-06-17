@@ -183,7 +183,7 @@ declare namespace Objection {
   // keeps keys starting with the $ sign and toJSON and QueryBuilderType
   type OnlyKeysFromModel<M extends Model> = {
     [K in keyof M as K extends `$${string}` ? K : never]: M[K];
-  } & {toJSON: M['toJSON'], QueryBuilderType: M['QueryBuilderType']};
+  } //& {toJSON: M['toJSON'], QueryBuilderType: M['QueryBuilderType']};
 
   /**
    * If T is an array, returns the item type, otherwise returns T.
@@ -246,19 +246,22 @@ declare namespace Objection {
    */
   type RestrictType<TypeToRestrict, Restriction> = { [K in keyof TypeToRestrict]: K extends keyof Restriction ? TypeToRestrict[K] : never }
 
+  type ModelKeys = Simplify<keyof Model>;
   /**
    * Recursive SetRequired
    */
-  type SetRequired<T, Required> = Omit<T, keyof Required> & 
+  type SetRequired<T extends Model, Required> = // Omit<T, Exclude<keyof Required, keyof Model>> & 
+    Omit<T, keyof Required> & 
     {[k in keyof T as k extends keyof Required ? k : never]-?:
       k extends keyof Required ?
         Required[k] extends object ?
-          NonNullable<T[k]> extends Array<infer ItemType> ?
+          NonNullable<T[k]> extends Array<infer ItemType extends Model> ?
             Array<Simplify<SetRequired<ItemType, Required[k]>>>
-            : Simplify<SetRequired<NonNullable<T[k]>, Required[k]>>
+            : T[k] extends Model ? Simplify<SetRequired<NonNullable<T[k]>, Required[k]>> : T[k]
           : T[k]
         : T[k]
-    };
+    }
+    & Pick<T, ModelKeys> ;
 
   /**
    * Additional optional parameters that may be used in graphs.
@@ -1265,8 +1268,10 @@ declare namespace Objection {
     ): QueryBuilder<
       // Model is here to satisfy the Model requirement in the QueryBuilder type
       // sometimes creates errors because of recursivity
-     Model
-      & SetRequired<M, Expr>> ;
+     // Omit<Model, 'QueryBuilderType'> & { QueryBuilderType: QueryBuilder<M>} &
+     SetRequired<M, Expr>
+     //& { toJSON(opt?: ToJsonOptions): ModelObject<SetRequired<M, Expr>>}
+     > ;
     (expr: StringRelationExpression<M>, options?: GraphOptions): QueryBuilder<M>;
   }
 

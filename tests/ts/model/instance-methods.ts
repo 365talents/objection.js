@@ -17,6 +17,7 @@ personPojo.children![0].$query
   });
 
   const p = await pq;
+  pq.ModelType.pet;
   if(p) {
     const pj = p[0].toJSON();
     // test that toJSON keeps the required properties
@@ -39,7 +40,7 @@ personPojo.children![0].$query
       mom: true
     },
     pet: true
-  }).first();
+  }).whereIn('id', [12,11,14]).ignore().first();
 
   if(p) {
     //const pj = p[0].blurb();
