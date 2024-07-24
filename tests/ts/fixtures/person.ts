@@ -16,6 +16,7 @@ export class Person extends objection.Model {
   children?: Person[];
   // Note that $relatedQuery won't work for optional fields (at least until TS 2.8), so this gets a !:
   pets!: Animal[];
+  pet?: Animal;
   comments?: Comment[];
   movies?: Movie[];
   age!: number;

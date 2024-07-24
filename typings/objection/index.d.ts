@@ -1,3 +1,4 @@
+import { IsEqual, Simplify } from 'type-fest';
 /// <reference types="node" />
 
 // Type definitions for Objection.js
@@ -15,7 +16,7 @@
 import Ajv, { Options as AjvOptions } from 'ajv';
 import * as dbErrors from 'db-errors';
 import { Knex } from 'knex';
-import { SnakeCase, SnakeCasedProperties } from 'type-fest';
+import { SnakeCase } from 'type-fest';
 
 // Export the entire Objection namespace.
 export = Objection;
@@ -171,6 +172,18 @@ declare namespace Objection {
   }
 
   type RelationExpression<M extends Model> = string | object;
+  type StringRelationExpression<M extends Model> = string;
+  type ObjectRelationExpression<M extends Model> = {readonly [key in keyof ModelObject<M>]?: object | boolean};
+  type ExcludeUndefinedKeys<T> = T extends object
+  ? {
+      [K in keyof T as undefined extends T[K] ? never : K]: ExcludeUndefinedKeys<T[K]>;
+    }
+  : T;
+
+  // keeps keys starting with the $ sign and toJSON and QueryBuilderType
+  type OnlyKeysFromModel<M extends Model> = {
+    [K in keyof M as K extends `$${string}` ? K : never]: M[K];
+  } //& {toJSON: M['toJSON'], QueryBuilderType: M['QueryBuilderType']};
 
   /**
    * If T is an array, returns the item type, otherwise returns T.
@@ -192,10 +205,28 @@ declare namespace Objection {
    */
   type Defined<T> = Exclude<T, undefined>;
 
+
+  /**
+   * Filter out keys from an object.
+   */
+  type Filter<KeyType, ExcludeType> = IsEqual<KeyType, ExcludeType> extends true ? never : (KeyType extends ExcludeType ? never : KeyType);
+  
+  /**
+   * Does an Except recursively, removing the keys of the ExclType on each level of ObjectType if the property of ObjectType extends the ExclType.
+   */
+  type ExceptTypeDeep<ObjectType extends ExclType, ExclType> = {
+    [KeyType in keyof ObjectType as Filter<KeyType, keyof ExclType>]:
+      ObjectType[KeyType] extends ExclType ? 
+        ExceptTypeDeep<ObjectType[KeyType], ExclType>
+        : Defined<ObjectType[KeyType]> extends Array<infer ArrayItem> ? 
+          ArrayItem extends ExclType ? Array<ExceptTypeDeep<ArrayItem, ExclType>> :  ObjectType[KeyType] : ObjectType[KeyType];
+  };
+  
+  
   /**
    * A Pojo version of model.
    */
-  type ModelObject<T extends Model> = Pick<T, DataPropertyNames<T>>;
+  type ModelObject<T extends Model> = ExceptTypeDeep<T, Model>;
 
   /**
    * Any object that has some of the properties of model class T match this type.
@@ -209,6 +240,28 @@ declare namespace Objection {
         : Expression<T[K]>
       : Expression<T[K]>;
   };
+
+  /**
+   * Restrict the keys to the ones present in Restriction
+   */
+  type RestrictType<TypeToRestrict, Restriction> = { [K in keyof TypeToRestrict]: K extends keyof Restriction ? TypeToRestrict[K] : never }
+
+  type ModelKeys = Simplify<keyof Model>;
+  /**
+   * Recursive SetRequired
+   */
+  type SetRequired<T extends Model, Required> = // Omit<T, Exclude<keyof Required, keyof Model>> & 
+    Omit<T, keyof Required> & 
+    {[k in keyof T as k extends keyof Required ? k : never]-?:
+      k extends keyof Required ?
+        Required[k] extends object ?
+          NonNullable<T[k]> extends Array<infer ItemType extends Model> ?
+            Array<Simplify<SetRequired<ItemType, Required[k]>>>
+            : T[k] extends Model ? Simplify<SetRequired<NonNullable<T[k]>, Required[k]>> : T[k]
+          : T[k]
+        : T[k]
+    }
+    & Pick<T, ModelKeys> ;
 
   /**
    * Additional optional parameters that may be used in graphs.
@@ -335,6 +388,11 @@ declare namespace Objection {
    * Gets the page query builder type for a query builder.
    */
   type PageQueryBuilder<T extends { PageQueryBuilderType: any }> = T['PageQueryBuilderType'];
+
+  /**
+   * Gets the page query builder type for a query builder.
+   */
+  type GraphFetchedHack<T extends { GraphFetchedQueryBuilderType: any }> = T['GraphFetchedQueryBuilderType'];
 
   interface ForClassMethod {
     <M extends Model>(modelClass: ModelConstructor<M>): QueryBuilderType<M>;
@@ -1085,7 +1143,18 @@ declare namespace Objection {
     unrelate(): NumberQueryBuilder<this>;
     for(ids: ForIdValue | ForIdValue[]): this;
 
-    withGraphFetched(expr: RelationExpression<M>, options?: GraphOptions): this;
+    // withGraphFetched(expr: StringRelationExpression<M>, options?: GraphOptions): this;
+    // withGraphFetched<Expr extends ObjectRelationExpression<M>>(
+    //   expr: RestrictType<Expr, ObjectRelationExpression<M>>, 
+    //   options?: GraphOptions
+    // ): QueryBuilder<Model & SetRequired<M, Expr>>;
+    //  withGraphFetched<Expr extends ObjectRelationExpression<M>>(
+    //    expr: RestrictType<Expr, ObjectRelationExpression<M>>, 
+    //    options?: GraphOptions
+    //  ): QueryBuilder<M & SetRequired<M, Expr>>; // Model is here to guarantee that we have '$modelClass', '$relatedQuery', '$query' etc. as they will never be in 'required'
+    withGraphFetched: GraphFetchedHack<this>;
+    // withGraphFetched: GraphFetchedMethod<M>;
+    // withGraphFetched(expr: StringRelationExpression<M>, options?: GraphOptions): this;
     withGraphJoined(expr: RelationExpression<M>, options?: GraphOptions): this;
 
     truncate(): Promise<void>;
@@ -1180,6 +1249,7 @@ declare namespace Objection {
     MaybeSingleQueryBuilderType: QueryBuilder<M, M | undefined>;
     NumberQueryBuilderType: QueryBuilder<M, number>;
     PageQueryBuilderType: QueryBuilder<M, Page<M>>;
+    GraphFetchedQueryBuilderType: GraphFetchedMethod<M>;
 
     then<R1 = R, R2 = never>(
       onfulfilled?: ((value: R) => R1 | PromiseLike<R1>) | undefined | null,
@@ -1189,6 +1259,20 @@ declare namespace Objection {
     catch<FR = never>(
       onrejected?: ((reason: any) => FR | PromiseLike<FR>) | undefined | null,
     ): Promise<R | FR>;
+  }
+
+  interface GraphFetchedMethod<M extends Model> {
+    <Expr extends ObjectRelationExpression<M>>(
+      expr: RestrictType<Expr, ObjectRelationExpression<M>>,
+      options?: GraphOptions
+    ): QueryBuilder<
+      // Model is here to satisfy the Model requirement in the QueryBuilder type
+      // sometimes creates errors because of recursivity
+     // Omit<Model, 'QueryBuilderType'> & { QueryBuilderType: QueryBuilder<M>} &
+     SetRequired<M, Expr>
+     //& { toJSON(opt?: ToJsonOptions): ModelObject<SetRequired<M, Expr>>}
+     > ;
+    (expr: StringRelationExpression<M>, options?: GraphOptions): QueryBuilder<M>;
   }
 
   type X<T> = Promise<T>;

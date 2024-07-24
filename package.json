@@ -75,7 +75,7 @@
     "pg": "^8.7.1",
     "prettier": "3.0.3",
     "sqlite3": "^5.0.2",
-    "typescript": ">=4.5.4",
+    "typescript": "^5.5.1-rc",
     "vuepress": "1.9.10"
   }
 }

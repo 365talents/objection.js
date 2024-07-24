@@ -701,7 +701,7 @@ const rowsEager: PromiseLike<Person[]> = Person.query().withGraphFetched('foo.ba
   joinOperation: 'innerJoin',
 });
 
-const rowsEager2: PromiseLike<Person[]> = Person.query().withGraphFetched({
+const rowsEager2 = Person.query().withGraphFetched({
   pets: {
     owner: {
       movies: {
@@ -712,7 +712,7 @@ const rowsEager2: PromiseLike<Person[]> = Person.query().withGraphFetched({
 });
 
 const rowsEager3: PromiseLike<Person[]> = Person.query().withGraphFetched({
-  foo: {
+  mom: {
     bar: true,
   },
 });
