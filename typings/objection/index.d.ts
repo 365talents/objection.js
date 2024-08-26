@@ -170,7 +170,7 @@ declare namespace Objection {
     [key: string]: Modifier<QB>;
   }
 
-  type RelationExpression<M extends Model> = string | object;
+  type RelationExpression<M extends Model> = object;
 
   /**
    * If T is an array, returns the item type, otherwise returns T.
@@ -662,6 +662,10 @@ declare namespace Objection {
 
   interface AllowGraphMethod<QB extends AnyQueryBuilder> {
     (expr: RelationExpression<ModelType<QB>>): QB;
+    /**
+     * @deprecated Use object relation expression instead.
+     */
+    (expr: string): QB;
   }
 
   interface IdentityMethod<QB extends AnyQueryBuilder> {
@@ -821,6 +825,13 @@ declare namespace Objection {
   interface ModifyGraphMethod<QB extends AnyQueryBuilder> {
     <M extends Model>(
       expr: RelationExpression<ModelType<QB>>,
+      modifier: Modifier<QueryBuilderType<M>>,
+    ): QB;
+    /**
+     * @deprecated Use object relation expression instead.
+     */
+    <M extends Model>(
+      expr: string,
       modifier: Modifier<QueryBuilderType<M>>,
     ): QB;
   }
@@ -1086,7 +1097,15 @@ declare namespace Objection {
     for(ids: ForIdValue | ForIdValue[]): this;
 
     withGraphFetched(expr: RelationExpression<M>, options?: GraphOptions): this;
+    /**
+     * @deprecated use the object relation expression instead
+     */ 
+    withGraphFetched(expr: string, options?: GraphOptions): this;
     withGraphJoined(expr: RelationExpression<M>, options?: GraphOptions): this;
+    /**
+     * @deprecated use the object relation expression instead
+     */ 
+    withGraphJoined(expr: string, options?: GraphOptions): this;
 
     truncate(): Promise<void>;
     allowGraph: AllowGraphMethod<this>;
@@ -1504,6 +1523,22 @@ declare namespace Objection {
       expression: RelationExpression<M>,
       options?: FetchGraphOptions,
     ): QueryBuilderType<M>;
+    /**
+     * @deprecated use the object relation expression instead
+     */ 
+    fetchGraph(
+      modelOrObject: PartialModelObject<M>,
+      expression: string,
+      options?: FetchGraphOptions,
+    ): SingleQueryBuilder<QueryBuilderType<M>>;
+    /**
+     * @deprecated use the object relation expression instead
+     */ 
+    fetchGraph(
+      modelOrObject: PartialModelObject<M>[],
+      expression: string,
+      options?: FetchGraphOptions,
+    ): QueryBuilderType<M>;
 
     getRelations(): Relations;
     getRelation(name: string): Relation;
@@ -1619,6 +1654,24 @@ declare namespace Objection {
       expression: RelationExpression<M>,
       options?: FetchGraphOptions,
     ): QueryBuilderType<M>;
+    /**
+     * @deprecated use the object relation expression instead
+     */ 
+    static fetchGraph<M extends Model>(
+      this: Constructor<M>,
+      modelOrObject: PartialModelObject<M>,
+      expression: string,
+      options?: FetchGraphOptions,
+    ): SingleQueryBuilder<QueryBuilderType<M>>;
+    /**
+     * @deprecated use the object relation expression instead
+     */ 
+    static fetchGraph<M extends Model>(
+      this: Constructor<M>,
+      modelOrObject: PartialModelObject<M>[],
+      expression: string,
+      options?: FetchGraphOptions,
+    ): QueryBuilderType<M>;
 
     static getRelations(): Relations;
     static getRelation(name: string): Relation;
@@ -1664,6 +1717,13 @@ declare namespace Objection {
 
     $fetchGraph(
       expression: RelationExpression<this>,
+      options?: FetchGraphOptions,
+    ): SingleQueryBuilder<QueryBuilderType<this>>;
+    /**
+     * @deprecated use the object relation expression instead
+     */ 
+    $fetchGraph(
+      expression: string,
       options?: FetchGraphOptions,
     ): SingleQueryBuilder<QueryBuilderType<this>>;
 
