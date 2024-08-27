@@ -511,6 +511,7 @@ qb = qb.distinct('column1', 'column2', 'column3');
 qb = qb.join('tablename', 'column1', '=', 'column2');
 qb = qb.outerJoin('tablename', 'column1', '=', 'column2');
 qb = qb.joinRelated('table');
+qb = qb.joinRelated({ table: true });
 qb = qb.joinRelated('table', { alias: false });
 qb = qb.where(raw('random()', 1, '2'));
 qb = qb.where(raw('random()', 1, '2'), '=', Person.knex().raw('foo'));
@@ -734,6 +735,7 @@ const childrenAndPets: PromiseLike<Person[]> = Person.query()
 
 const childrenAndPets2: PromiseLike<Person[]> = Person.query()
   .withGraphFetched('children')
+  .withGraphFetched({ children: true })
   .where('age', '>=', 42)
   .modifyGraph('[pets, children.pets]', (qb) => qb.orderBy('name'))
   .modifyGraph('[pets, children.pets]', 'orderByName')
@@ -741,6 +743,7 @@ const childrenAndPets2: PromiseLike<Person[]> = Person.query()
 
 const childrenAndPets3: PromiseLike<Person[]> = Person.query()
   .withGraphJoined('children')
+  .withGraphJoined({ children: true })
   .where('age', '>=', 42)
   .modifyGraph('[pets, children.pets]', (qb) => qb.orderBy('name'))
   .modifyGraph('[pets, children.pets]', 'orderByName')
@@ -823,6 +826,7 @@ pagePromise = pageQb.execute();
 
 Person.query()
   .modify('someModifier')
+  .modify(Person.modifiers.myFilter)
   .modify('someModifier', 1, 'foo', { bar: true })
   .modify(['someModifier', 'someOtherModifier'])
   .modify((qb) => qb.where('firstName', 'lol'));

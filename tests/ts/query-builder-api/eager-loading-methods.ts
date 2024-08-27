@@ -1,4 +1,5 @@
 import { Person } from '../fixtures/person';
+import { Animal } from '../fixtures/animal';
 
 (async () => {
   await Person.query().where('firstName', 'Arnold').withGraphFetched('pets');
@@ -31,11 +32,11 @@ import { Person } from '../fixtures/person';
   await Person.query().modifiers({
     // You can bind arguments to Model modifiers like this
     filterFemale(builder) {
-      builder.modify('filterGender', 'female');
+      builder.modify(Animal.modifiers.filterGender, 'female');
     },
 
     filterDogs(builder) {
-      builder.modify('filterSpecies', 'dog');
+      builder.modify(Animal.modifiers.filterSpecies, 'dog');
     },
   }).withGraphFetched(`
     children(defaultSelects, orderByAge, filterFemale).[
@@ -65,8 +66,25 @@ import { Person } from '../fixtures/person';
       ]
     ]
   ]`);
+  await Person.query().withGraphFetched({
+    kids: {
+      $relation: 'children',
+      $modify: 'orderByAge',
+      dogs: {
+        $relation: 'pets',
+        $modify: 'filterDogs',
+      },
+      cats: {
+        $relation: 'pets',
+        $modify: 'filterCats',
+      },
+      movies: {
+        actors: true,
+      },
+    }
+  });
 
-  await Person.query().where('id', 1).withGraphFetched('children.children');
+  await Person.query().where('id', 1).withGraphFetched({ children : { children : true } });
 
   await Person.query()
     .withGraphJoined('children.[pets, movies]')

@@ -15,7 +15,7 @@ import { ModelClass } from '../../';
 
   const tableName: string = modelClass.tableName;
   const persons = await modelClass.query().where('firstName', 'Jennifer');
-  const persons2: Person[] = await modelClass.fetchGraph(persons, 'pets');
+  const persons2: Person[] = await modelClass.fetchGraph(persons, {pets: 'true'});
 })();
 
 (async () => {

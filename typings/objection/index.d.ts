@@ -160,8 +160,6 @@ declare namespace Objection {
   type ModifierFunction<QB extends AnyQueryBuilder> = (qb: QB, ...args: any[]) => void;
   type Modifier<QB extends AnyQueryBuilder = AnyQueryBuilder> =
     | ModifierFunction<QB>
-    | string
-    | string[]
     | Record<string, Expression<PrimitiveValue>>;
   type OrderByDirection = 'asc' | 'desc' | 'ASC' | 'DESC';
   type OrderByNulls = 'first' | 'last';
@@ -606,6 +604,10 @@ declare namespace Objection {
 
   interface JoinRelatedMethod<QB extends AnyQueryBuilder> {
     (expr: RelationExpression<ModelType<QB>>, opt?: JoinRelatedOptions): QB;
+    /**
+     * @deprecated Use object relation expression instead.
+     */
+    (expr: string, opt?: JoinRelatedOptions): QB;
   }
 
   interface JoinMethod<QB extends AnyQueryBuilder> {
@@ -831,8 +833,21 @@ declare namespace Objection {
      * @deprecated Use object relation expression instead.
      */
     <M extends Model>(
+      expr: RelationExpression<ModelType<QB>>,
+      modifier: string | string[],
+    ): QB;
+    /**
+     * @deprecated Use object relation expression instead.
+     */
+    <M extends Model>(
       expr: string,
       modifier: Modifier<QueryBuilderType<M>>,
+    ): QB;
+    /**
+     * @deprecated Use object relation expression instead.
+     */(
+      expr: string,
+      modifier: string  | string[],
     ): QB;
   }
 
@@ -847,6 +862,10 @@ declare namespace Objection {
 
   interface ModifyMethod<QB extends AnyQueryBuilder> {
     (modifier: Modifier<QB> | Modifier<QB>[], ...args: any[]): QB;
+    /**
+     * @deprecated Use functions / methods instead.
+     */
+    (modifier: string | string[], ...args: any[]): QB;
   }
 
   interface ModifiersMethod<QB extends AnyQueryBuilder> {

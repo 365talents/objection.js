@@ -28,6 +28,12 @@ export class Animal extends objection.Model {
       onlyDogs(builder: objection.QueryBuilder<Animal>) {
         builder.where('species', 'dog');
       },
+      filterGender(builder: objection.QueryBuilder<Animal>) {
+        // not implemented
+      },
+      filterSpecies(builder: objection.QueryBuilder<Animal>, species: string) {
+        builder.where('species', species);
+      }
     };
   }
 }
