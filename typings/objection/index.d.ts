@@ -861,7 +861,9 @@ declare namespace Objection {
   }
 
   interface ModifyMethod<QB extends AnyQueryBuilder> {
-    (modifier: Modifier<QB> | Modifier<QB>[], ...args: any[]): QB;
+    // TODO: move into a type ?
+    // force the modifier to be compatible with the args passed to it
+    <TArgs extends any>(modifier: ((queryBuilder: QB, ...args: TArgs[]) => void) | ((queryBuilder: QB, ...args: TArgs[]) => void)[], ...args: TArgs[]): QB;
     /**
      * @deprecated Use functions / methods instead.
      */

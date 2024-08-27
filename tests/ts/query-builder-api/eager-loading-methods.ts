@@ -32,6 +32,7 @@ import { Animal } from '../fixtures/animal';
   await Person.query().modifiers({
     // You can bind arguments to Model modifiers like this
     filterFemale(builder) {
+      // @ts-expect-error filterGender doesn't accept arguments
       builder.modify(Animal.modifiers.filterGender, 'female');
     },
 
