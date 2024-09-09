@@ -13,6 +13,8 @@ export class Person extends objection.Model {
   // Or for not-null fields that are always initialized, you can use the new ! syntax:
   lastName!: string;
   mom?: Person;
+  dad!: Person;
+  sister!: Person | null;
   children?: Person[];
   // Note that $relatedQuery won't work for optional fields (at least until TS 2.8), so this gets a !:
   pets!: Animal[];

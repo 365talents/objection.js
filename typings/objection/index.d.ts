@@ -191,21 +191,42 @@ declare namespace Objection {
   type Defined<T> = Exclude<T, undefined>;
 
   /**
+   * Does an Except recursively, removing the keys of the ExclType on each level of ObjectType if the property of ObjectType extends the ExclType.
+   */
+  type ExceptTypeDeep<ObjectType extends ExclType, ExclType> = {
+    [KeyType in keyof ObjectType as Exclude<
+      KeyType,
+      keyof ExclType
+    >]: ObjectType[KeyType] extends ExclType | undefined
+      ? ExceptTypeDeep<NonNullable<ObjectType[KeyType]>, ExclType>
+      : ObjectType[KeyType] extends ExclType | null // keep | null types
+      ? ExceptTypeDeep<NonNullable<ObjectType[KeyType]>, ExclType> | null
+      : Defined<ObjectType[KeyType]> extends Array<infer ArrayItem>
+      ? ArrayItem extends ExclType
+        ? Array<ExceptTypeDeep<ArrayItem, ExclType>>
+        : ObjectType[KeyType]
+      : ObjectType[KeyType];
+  };
+  
+  /**
    * A Pojo version of model.
    */
-  type ModelObject<T extends Model> = Pick<T, DataPropertyNames<T>>;
+  type ModelObject<M extends Model, O extends ToJsonOptions | undefined = { shallow: false}> = 
+    O extends { shallow: true } ? ShallowModelObject<M> : DeepModelObject<M>;
+  type DeepModelObject<T extends Model> = ExceptTypeDeep<T, Model>;
+  type ShallowModelObject<T extends Model> = Pick<T, DataPropertyNames<T>>;
 
   /**
    * Any object that has some of the properties of model class T match this type.
    */
   type PartialModelObject<T extends Model> = {
     [K in DataPropertyNames<T>]?: Defined<T[K]> extends Model
-      ? T[K]
-      : Defined<T[K]> extends Array<infer I>
-      ? I extends Model
-        ? I[]
-        : Expression<T[K]>
-      : Expression<T[K]>;
+    ? T[K]
+    : Defined<T[K]> extends Array<infer I>
+    ? I extends Model
+    ? I[]
+    : Expression<T[K]>
+    : Expression<T[K]>;
   };
 
   /**
@@ -222,18 +243,18 @@ declare namespace Objection {
    */
   type PartialModelGraph<M, T = M & GraphParameters> = T extends any
     ? {
-        [K in DataPropertyNames<T>]?: null extends T[K]
-          ? PartialModelGraphField<NonNullable<T[K]>> | null // handle nullable BelongsToOneRelations
-          : PartialModelGraphField<T[K]>;
-      }
+      [K in DataPropertyNames<T>]?: null extends T[K]
+      ? PartialModelGraphField<NonNullable<T[K]>> | null // handle nullable BelongsToOneRelations
+      : PartialModelGraphField<T[K]>;
+    }
     : never;
 
   type PartialModelGraphField<F> = Defined<F> extends Model
     ? PartialModelGraph<Defined<F>>
     : Defined<F> extends Array<infer I>
     ? I extends Model
-      ? PartialModelGraph<I>[]
-      : Expression<F>
+    ? PartialModelGraph<I>[]
+    : Expression<F>
     : Expression<F>;
 
   /**
@@ -242,14 +263,14 @@ declare namespace Objection {
   type ModelProps<T extends Model> = Exclude<
     {
       [K in keyof T]?: Defined<T[K]> extends Model
-        ? never
-        : Defined<T[K]> extends Array<infer I>
-        ? I extends Model
-          ? never
-          : K
-        : T[K] extends Function
-        ? never
-        : K;
+      ? never
+      : Defined<T[K]> extends Array<infer I>
+      ? I extends Model
+      ? never
+      : K
+      : T[K] extends Function
+      ? never
+      : K;
     }[keyof T],
     undefined | 'QueryBuilderType'
   >;
@@ -260,12 +281,12 @@ declare namespace Objection {
   type ModelRelations<T extends Model> = Defined<
     {
       [K in keyof T]?: Defined<T[K]> extends Model
-        ? K
-        : Defined<T[K]> extends Array<infer I>
-        ? I extends Model
-          ? K
-          : never
-        : never;
+      ? K
+      : Defined<T[K]> extends Array<infer I>
+      ? I extends Model
+      ? K
+      : never
+      : never;
     }[keyof T]
   >;
 
@@ -277,8 +298,8 @@ declare namespace Objection {
     ? SingleQueryBuilder<QueryBuilderType<T>>
     : T extends Array<infer I>
     ? I extends Model
-      ? QueryBuilderType<I>
-      : never
+    ? QueryBuilderType<I>
+    : never
     : never;
 
   /**
@@ -290,8 +311,8 @@ declare namespace Objection {
     ? QueryBuilderType<T>
     : T extends Array<infer I>
     ? I extends Model
-      ? QueryBuilderType<I>
-      : never
+    ? QueryBuilderType<I>
+    : never
     : never;
 
   /**
@@ -847,7 +868,7 @@ declare namespace Objection {
      * @deprecated Use object relation expression instead.
      */(
       expr: string,
-      modifier: string  | string[],
+      modifier: string | string[],
     ): QB;
   }
 
@@ -1122,12 +1143,12 @@ declare namespace Objection {
     withGraphFetched(expr: RelationExpression<M>, options?: GraphOptions): this;
     /**
      * @deprecated use the object relation expression instead
-     */ 
+     */
     withGraphFetched(expr: string, options?: GraphOptions): this;
     withGraphJoined(expr: RelationExpression<M>, options?: GraphOptions): this;
     /**
      * @deprecated use the object relation expression instead
-     */ 
+     */
     withGraphJoined(expr: string, options?: GraphOptions): this;
 
     truncate(): Promise<void>;
@@ -1548,7 +1569,7 @@ declare namespace Objection {
     ): QueryBuilderType<M>;
     /**
      * @deprecated use the object relation expression instead
-     */ 
+     */
     fetchGraph(
       modelOrObject: PartialModelObject<M>,
       expression: string,
@@ -1556,7 +1577,7 @@ declare namespace Objection {
     ): SingleQueryBuilder<QueryBuilderType<M>>;
     /**
      * @deprecated use the object relation expression instead
-     */ 
+     */
     fetchGraph(
       modelOrObject: PartialModelObject<M>[],
       expression: string,
@@ -1623,7 +1644,7 @@ declare namespace Objection {
     static defaultGraphOptions?: GraphOptions;
 
     static columnNameToPropertyName<M extends Model>(this: Constructor<M>, col: SnakeCase<ModelProps<M>>): string;
-    static propertyNameToColumnName<M extends Model>(this: Constructor<M>, col:  ModelProps<M>): string;
+    static propertyNameToColumnName<M extends Model>(this: Constructor<M>, col: ModelProps<M>): string;
 
     static query<M extends Model>(
       this: Constructor<M>,
@@ -1679,7 +1700,7 @@ declare namespace Objection {
     ): QueryBuilderType<M>;
     /**
      * @deprecated use the object relation expression instead
-     */ 
+     */
     static fetchGraph<M extends Model>(
       this: Constructor<M>,
       modelOrObject: PartialModelObject<M>,
@@ -1688,7 +1709,7 @@ declare namespace Objection {
     ): SingleQueryBuilder<QueryBuilderType<M>>;
     /**
      * @deprecated use the object relation expression instead
-     */ 
+     */
     static fetchGraph<M extends Model>(
       this: Constructor<M>,
       modelOrObject: PartialModelObject<M>[],
@@ -1744,7 +1765,7 @@ declare namespace Objection {
     ): SingleQueryBuilder<QueryBuilderType<this>>;
     /**
      * @deprecated use the object relation expression instead
-     */ 
+     */
     $fetchGraph(
       expression: string,
       options?: FetchGraphOptions,
@@ -1769,8 +1790,8 @@ declare namespace Objection {
     $afterDelete(queryContext: QueryContext): Promise<any> | void;
 
     $toDatabaseJson(): Pojo;
-    $toJson(opt?: ToJsonOptions): ModelObject<this>;
-    toJSON(opt?: ToJsonOptions): ModelObject<this>;
+    $toJson<T extends ToJsonOptions>(opt?: T): ModelObject<this, T>;
+    toJSON<T extends ToJsonOptions>(opt?: T): ModelObject<this, T>;
 
     $setJson(json: object, opt?: ModelOptions): this;
     $setDatabaseJson(json: object): this;
