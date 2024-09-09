@@ -34,10 +34,21 @@ import { Animal } from '../fixtures/animal';
     filterFemale(builder) {
       // @ts-expect-error filterGender doesn't accept arguments
       builder.modify(Animal.modifiers.filterGender, 'female');
+      
+      builder.modify(Animal.modifiers.filterGender);
     },
 
     filterDogs(builder) {
       builder.modify(Animal.modifiers.filterSpecies, 'dog');
+
+      // @ts-expect-error too many arguments
+      builder.modify(Animal.modifiers.filterSpecies, 'dog', 'dog');
+
+      // @ts-expect-error wrong argument type
+      builder.modify(Animal.modifiers.filterSpecies, false);
+
+      // @ts-expect-error not enough arguments
+      builder.modify(Animal.modifiers.filterSpecies);
     },
   }).withGraphFetched(`
     children(defaultSelects, orderByAge, filterFemale).[
