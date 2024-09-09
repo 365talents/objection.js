@@ -191,31 +191,10 @@ declare namespace Objection {
   type Defined<T> = Exclude<T, undefined>;
 
   /**
-  Comes from type-fest
-  Returns a boolean for whether the two given types are equal.
-
-  @link https://github.com/microsoft/TypeScript/issues/27024#issuecomment-421529650
-  @link https://stackoverflow.com/questions/68961864/how-does-the-equals-work-in-typescript/68963796#68963796
-
-  Use-cases:
-  - If you want to make a conditional branch based on the result of a comparison of two types.
-  */
-  export type IsEqual<A, B> =
-    (<G>() => G extends A ? 1 : 2) extends
-    (<G>() => G extends B ? 1 : 2)
-    ? true
-    : false;
-
-  /**
-   * Filter out keys from an object.
-   */
-  type Filter<KeyType, ExcludeType> = IsEqual<KeyType, ExcludeType> extends true ? never : (KeyType extends ExcludeType ? never : KeyType);
-
-  /**
    * Does an Except recursively, removing the keys of the ExclType on each level of ObjectType if the property of ObjectType extends the ExclType.
    */
   type ExceptTypeDeep<ObjectType extends ExclType, ExclType> = {
-    [KeyType in keyof ObjectType as Filter<
+    [KeyType in keyof ObjectType as Exclude<
       KeyType,
       keyof ExclType
     >]: ObjectType[KeyType] extends ExclType | undefined
