@@ -1,4 +1,11 @@
 # Changelog
+## 3.1.2-fork4
+  
+### What's new
+
+- Fix ModelObject TS helper and toJSON return type
+- Deprecate methods taking modifiers or relations as arguments when written as string, use real functions or objects instead
+
 ## 3.1.2-fork3
   
 ### What's new
