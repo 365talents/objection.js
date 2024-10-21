@@ -170,15 +170,20 @@ module.exports = (session) => {
         return Person.query()
           .findOne({ 'Person.name': 'Arnold' })
           .select('Person.name')
-          .withGraphFetched(
-            `[
-            movies(name),
-            favoritePet(name).[
-              peopleWhoseFavoriteIAm(name),
-              favoritePerson(name),
-            ]
-          ]`,
-          )
+          .withGraphFetched({
+            movies: {
+              $modify: ['name'],
+            },
+            favoritePet: {
+              $modify: ['name'],
+              peopleWhoseFavoriteIAm: {
+                $modify: ['name'],
+              },
+              favoritePerson: {
+                $modify: ['name'],
+              },
+            },
+          })
           .then(sortRelations)
           .then((person) => {
             expect(person).to.eql({
