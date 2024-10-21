@@ -5,6 +5,8 @@
 
 - Fix ModelObject TS helper and toJSON return type
 - Deprecate methods taking modifiers or relations as arguments when written as string, use real functions or objects instead
+- Fix JSON accessors for PostgreSQL
+- Fix CI and unit tests
 
 ## 3.1.2-fork3
   
