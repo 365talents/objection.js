@@ -183,7 +183,9 @@ declare namespace Objection {
   /**
    * Type that attempts to only select the user-defined model properties.
    */
-  type DataPropertyNames<T> = Exclude<NonFunctionPropertyNames<T>, 'QueryBuilderType'>;
+  type DataPropertyNames<T extends Model> = keyof DeepModelObject<T>;
+
+  type ShallowDataPropertyNames<T> = Exclude<NonFunctionPropertyNames<T>, 'QueryBuilderType'>;
 
   /**
    * Removes `undefined` from a type.
@@ -214,19 +216,20 @@ declare namespace Objection {
   type ModelObject<M extends Model, O extends ToJsonOptions | undefined = { shallow: false}> = 
     O extends { shallow: true } ? ShallowModelObject<M> : DeepModelObject<M>;
   type DeepModelObject<T extends Model> = ExceptTypeDeep<T, Model>;
-  type ShallowModelObject<T extends Model> = Pick<T, DataPropertyNames<T>>;
+  type ShallowModelObject<T extends Model> = Pick<T, ShallowDataPropertyNames<T>>;
+
 
   /**
    * Any object that has some of the properties of model class T match this type.
    */
   type PartialModelObject<T extends Model> = {
-    [K in DataPropertyNames<T>]?: Defined<T[K]> extends Model
-    ? T[K]
-    : Defined<T[K]> extends Array<infer I>
+    [K in DataPropertyNames<T>]?: Defined<DeepModelObject<T>[K]> extends Model
+    ? DeepModelObject<T>[K]
+    : Defined<DeepModelObject<T>[K]> extends Array<infer I>
     ? I extends Model
     ? I[]
-    : Expression<T[K]>
-    : Expression<T[K]>;
+    : Expression<DeepModelObject<T>[K]>
+    : Expression<DeepModelObject<T>[K]>;
   };
 
   /**
@@ -241,9 +244,9 @@ declare namespace Objection {
   /**
    * Just like PartialModelObject but this is applied recursively to relations.
    */
-  type PartialModelGraph<M, T = M & GraphParameters> = T extends any
+  type PartialModelGraph<M extends Model, T extends Model = M & GraphParameters> = T extends any
     ? {
-      [K in DataPropertyNames<T>]?: null extends T[K]
+      [K in ShallowDataPropertyNames<T>]?: null extends T[K]
       ? PartialModelGraphField<NonNullable<T[K]>> | null // handle nullable BelongsToOneRelations
       : PartialModelGraphField<T[K]>;
     }

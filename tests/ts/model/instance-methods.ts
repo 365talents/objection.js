@@ -28,3 +28,5 @@ personPojo.dad.$afterDelete;
 const shallowPerson = person.toJSON({ shallow: true });
 // shallow toJSON keeps related models as ModelObject
 shallowPerson.mom?.$afterDelete;
+
+Person.query().patchAndFetch(person.toJSON());
