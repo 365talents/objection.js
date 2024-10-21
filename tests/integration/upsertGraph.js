@@ -3505,11 +3505,15 @@ module.exports = (session) => {
             'model1Relation2[0].model2Relation1[1].model1Prop1',
           ];
 
-          return Promise.map(fails, (fail) => {
-            return transaction(session.knex, (trx) =>
-              Model1.query(trx).upsertGraph(fail, { fetchStrategy }),
-            ).catch((err) => createRejectionReflection(err));
-          })
+          return Promise.map(
+            fails,
+            (fail) => {
+              return transaction(session.knex, (trx) =>
+                Model1.query(trx).upsertGraph(fail, { fetchStrategy }),
+              ).catch((err) => createRejectionReflection(err));
+            },
+            { concurrency: 1 },
+          )
             .then((results) => {
               // Check that all transactions have failed because of a validation error.
               results.forEach((res, index) => {

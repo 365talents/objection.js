@@ -29,7 +29,7 @@ async function setup() {
 
   if (DATABASES.includes('mysql')) {
     const mysql = await createKnex({
-      client: 'mysql',
+      client: 'mysql2',
 
       connection: {
         user: 'root',
@@ -61,7 +61,7 @@ async function createKnex(config) {
       if (now.getTime() - startTime.getTime() > 60000) {
         process.exit(1);
       } else {
-        console.log(`failed to connect to ${config.client}. Trying again soon`);
+        console.log(`failed to connect to ${config.client}. Trying again soon\n`, err);
         await new Promise((resolve) => setTimeout(resolve, 1000));
       }
     }
