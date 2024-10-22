@@ -888,6 +888,15 @@ declare namespace Objection {
     // TODO: move into a type ?
     // force the modifier to be compatible with the args passed to it
     <TArgs extends any[]>(modifier:
+      ((queryBuilder: QB, ...args: TArgs) => void)[])
+      : QB;
+    <TArgs extends any[]>(modifier:
+      ((queryBuilder: QB, ...args: TArgs) => void), ...args: TArgs)
+      : QB;
+    /**
+     * @deprecated chain multiple modify instead of using an array and having arguments
+     */
+    <TArgs extends any[]>(modifier:
       ((queryBuilder: QB, ...args: TArgs) => void) | ((queryBuilder: QB, ...args: TArgs) => void)[], ...args: TArgs)
       : QB;
     /**
