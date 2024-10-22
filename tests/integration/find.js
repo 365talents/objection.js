@@ -1092,7 +1092,22 @@ module.exports = (session) => {
               expect(_.map(models, 'model2Prop1').sort()).to.eql(['hejsan 2', 'hejsan 3']);
             });
         });
-
+        it('multiple modify', () => {
+          // ensure that we can chain modify calls
+          const modifier1 = (builder) => {
+            builder.where('model2_prop2', '>', 10);
+          };
+          const modifier2 = (builder) => {
+            builder.where({ model2_prop1: 'hejsan 2' });
+          };
+          return Promise.all([
+            Model2.query().modify(modifier1).modify(modifier2),
+            Model2.query().modify([modifier1, modifier2]),
+          ]).then(([models1, models2]) => {
+            expect(models1).to.have.length(models2.length);
+            expect(models1[0].toJSON()).to.eql(models2[0].toJSON());
+          });
+        });
         it('from', () => {
           return Model1.query()
             .upsertGraph({
