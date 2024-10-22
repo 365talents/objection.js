@@ -167,8 +167,12 @@ import { Model, transaction } from '../../../typings/objection';
   function modifierFunc(query: any, arg1: any, arg2: any) {
     query.where(arg1, arg2);
   }
+  function noArgsModifierFunc(query: any) {
+    query.where({ ha: 'ha' });
+  }
 
   Person.query().modify(modifierFunc, 'foo', 1);
+  Person.query().modify(noArgsModifierFunc);
 
   await Person.query()
     .modifiers({
@@ -182,4 +186,13 @@ import { Model, transaction } from '../../../typings/objection';
     .withGraphFetched('children(selectFields, filterWomen)');
 
   Person.query().modifiers();
+
+
+  // should be deprecated
+  Person.query().modify(['someModifier', 'someOtherModifier']);
+  // @ts-expect-error don't mix string and function modifiers
+  Person.query().modify(['someModifier', modifierFunc]);
+  Person.query().modify([modifierFunc, noArgsModifierFunc], 'foo', 1);
+  // correct way to do it, chain modify methods instead of using an array
+  Person.query().modify(modifierFunc, 'foo', 1).modify(noArgsModifierFunc);
 })();
