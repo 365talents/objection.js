@@ -213,7 +213,7 @@ declare namespace Objection {
   /**
    * A Pojo version of model.
    */
-  type ModelObject<M extends Model, O extends ToJsonOptions | undefined = { shallow: false}> = 
+  type ModelObject<M extends Model, O extends ToJsonOptions | undefined = { shallow: false }> = 
     O extends { shallow: true } ? ShallowModelObject<M> : DeepModelObject<M>;
   type DeepModelObject<T extends Model> = ExceptTypeDeep<T, Model>;
   type ShallowModelObject<T extends Model> = Pick<T, ShallowDataPropertyNames<T>>;
@@ -887,6 +887,15 @@ declare namespace Objection {
   interface ModifyMethod<QB extends AnyQueryBuilder> {
     // TODO: move into a type ?
     // force the modifier to be compatible with the args passed to it
+    <TArgs extends any[]>(modifier:
+      ((queryBuilder: QB, ...args: TArgs) => void)[])
+      : QB;
+    <TArgs extends any[]>(modifier:
+      ((queryBuilder: QB, ...args: TArgs) => void), ...args: TArgs)
+      : QB;
+    /**
+     * @deprecated chain multiple modify instead of using an array and having arguments
+     */
     <TArgs extends any[]>(modifier:
       ((queryBuilder: QB, ...args: TArgs) => void) | ((queryBuilder: QB, ...args: TArgs) => void)[], ...args: TArgs)
       : QB;
