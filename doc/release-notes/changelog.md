@@ -1,4 +1,11 @@
 # Changelog
+## 3.1.2-fork5
+  
+### What's new
+- Fix PartialModelObject type to be compatible with the fixed ModelObject type
+- Add integration to ensure that multiple modify and a modify with an array are the same thing in the query
+- Improve modify typings, forbid to mix strings and functions in an array, deprecate the modify call with an array of modifiers and arguments
+
 ## 3.1.2-fork4
   
 ### What's new
