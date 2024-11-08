@@ -209,11 +209,11 @@ declare namespace Objection {
         : ObjectType[KeyType]
       : ObjectType[KeyType];
   };
-  
+
   /**
    * A Pojo version of model.
    */
-  type ModelObject<M extends Model, O extends ToJsonOptions | undefined = { shallow: false }> = 
+  type ModelObject<M extends Model, O extends ToJsonOptions | undefined = { shallow: false }> =
     O extends { shallow: true } ? ShallowModelObject<M> : DeepModelObject<M>;
   type DeepModelObject<T extends Model> = ExceptTypeDeep<T, Model>;
   type ShallowModelObject<T extends Model> = Pick<T, ShallowDataPropertyNames<T>>;
@@ -790,6 +790,8 @@ declare namespace Objection {
     (cb: OnErrorCallback<QB>): QB;
   }
 
+  export type FetchStrategy = 'OnlyIdentifiers' | 'Everything' | 'OnlyNeeded';
+
   export interface InsertGraphOptions {
     relate?: boolean | string[];
     allowRefs?: boolean;
@@ -820,6 +822,7 @@ declare namespace Objection {
     noRelate?: boolean | string[];
     noUnrelate?: boolean | string[];
     allowRefs?: boolean;
+    fetchStrategy?: FetchStrategy;
   }
 
   interface UpsertGraphMethod<M extends Model> {
