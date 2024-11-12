@@ -1,4 +1,10 @@
 # Changelog
+## 3.1.2-fork6
+
+### What's new
+
+- Add fetchStrategy type
+
 ## 3.1.2-fork5
   
 ### What's new
